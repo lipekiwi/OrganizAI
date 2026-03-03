@@ -107,6 +107,17 @@ function aplicarTema(tema) {
         "theme-ocean"
     );
     body.classList.add(`theme-${tema}`);
+
+    const label = document.getElementById("themeCurrentLabel");
+    if (label) {
+        const map = {
+            dark: "Dark",
+            light: "Light",
+            forest: "Forest",
+            ocean: "Ocean"
+        };
+        label.textContent = map[tema] || tema;
+    }
 }
 
 function changeTheme(tema) {
