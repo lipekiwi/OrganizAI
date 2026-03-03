@@ -18,13 +18,18 @@
             <h2 id="mesAtual" class="app-subtitle"></h2>
         </div>
         <div class="theme-switcher">
-            <label for="themeSelect">Tema</label>
-            <select id="themeSelect" onchange="changeTheme(this.value)">
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-                <option value="forest">Forest</option>
-                <option value="ocean">Ocean</option>
-            </select>
+            <span class="theme-switcher-label">Tema</span>
+            <div class="theme-select-shell">
+                <div class="theme-select-inner">
+                    <span class="theme-dot"></span>
+                    <select id="themeSelect" onchange="changeTheme(this.value)">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="forest">Forest</option>
+                        <option value="ocean">Ocean</option>
+                    </select>
+                </div>
+            </div>
         </div>
     </header>
 
