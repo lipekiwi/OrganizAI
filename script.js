@@ -85,34 +85,6 @@ function getWeekOfMonth(diaDoMes) {
     return Math.floor(offset / 7) + 1;
 }
 
-// ── Calendar-week helpers ────────────────────────────────────────────────────
-
-/** Returns a new Date set to the Monday of the week containing `date`. */
-function getMonday(date) {
-    const d = new Date(date);
-    const day = d.getDay(); // 0 = Sun, 1 = Mon, …, 6 = Sat
-    const diff = (day === 0) ? -6 : 1 - day;
-    d.setDate(d.getDate() + diff);
-    d.setHours(0, 0, 0, 0);
-    return d;
-}
-
-/**
- * Returns 1-based week number of `monday` within its month.
- * Week 1 = the week whose Monday is the first Monday on-or-before the 1st.
- */
-function getWeekOfMonth(monday) {
-    const firstOfMonth = new Date(monday.getFullYear(), monday.getMonth(), 1);
-    const firstMonday  = getMonday(firstOfMonth);
-    return Math.round((monday - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
-}
-
-const DIAS_SEMANA_ABREV = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-function getDiaSemanaAbrev(diaDoMes) {
-    return DIAS_SEMANA_ABREV[getDiaSemana(diaDoMes)];
-}
-
 function isDiaEsperado(indexTarefa, diaDoMes) {
     const cfg = getConfigTarefa(indexTarefa);
     const dow = getDiaSemana(diaDoMes);
