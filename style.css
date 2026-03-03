@@ -481,6 +481,7 @@ table {
     font-size: 13px;
     width: 100%;
     min-width: 800px;
+    table-layout: fixed;
 }
 
 th {
@@ -531,6 +532,17 @@ td.goal-name {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+/* Constrain META and AÇÕES column widths so weekday columns stay stable */
+table th:first-child,
+table td.goal-name {
+    width: 240px;
+}
+
+table th:last-child,
+table td.acoes {
+    width: 120px;
 }
 
 .drag-handle {
