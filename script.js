@@ -25,7 +25,6 @@ function aplicarTema(tema) {
         "theme-dark",
         "theme-light",
         "theme-forest",
-        "theme-sunset",
         "theme-ocean"
     );
     body.classList.add(`theme-${tema}`);
@@ -37,7 +36,11 @@ function changeTheme(tema) {
 }
 
 // Apply saved theme on load
-const temaSalvo = localStorage.getItem(CHAVE_TEMA) || "dark";
+let temaSalvo = localStorage.getItem(CHAVE_TEMA) || "dark";
+// Caso antigo "sunset" ou qualquer valor inválido, cai para dark
+if (!["dark", "light", "forest", "ocean"].includes(temaSalvo)) {
+    temaSalvo = "dark";
+}
 aplicarTema(temaSalvo);
 const selectTema = document.getElementById("themeSelect");
 if (selectTema) selectTema.value = temaSalvo;
@@ -240,7 +243,7 @@ function renderizar() {
         const pct = progressoPorMeta(i);
         const tr = document.createElement("tr");
 
-        // Drag & drop para reordenar como no Notion
+        // Drag & drop para reordenar – usando handle dedicado
         tr.draggable = true;
         tr.dataset.index = i;
         tr.addEventListener("dragstart", (e) => {
@@ -273,10 +276,13 @@ function renderizar() {
         });
 
         let cells = `<td class="goal-name">
-            <span>${tarefa.nome}</span>
-            <span class="goal-progress-mini">
-                <span class="goal-progress-mini-fill" style="width:${pct}%"></span>
-            </span>
+            <span class="drag-handle" title="Arrastar para reordenar">⋮⋮</span>
+            <div class="goal-main">
+                <span class="goal-title">${tarefa.nome}</span>
+                <span class="goal-progress-mini">
+                    <span class="goal-progress-mini-fill" style="width:${pct}%"></span>
+                </span>
+            </div>
         </td>`;
 
         for (let d = 1; d <= diasNoMes; d++) {
@@ -287,10 +293,8 @@ function renderizar() {
         }
 
         cells += `<td class="acoes">
-            <button class="btn-action" onclick="editarTarefa(${i})" title="Editar">✏️</button>
-            <button class="btn-action danger" onclick="excluirTarefa(${i})" title="Excluir">🗑️</button>
-            <button class="btn-action" onclick="moverCima(${i})" title="Mover para cima">↑</button>
-            <button class="btn-action" onclick="moverBaixo(${i})" title="Mover para baixo">↓</button>
+            <button class="btn-action btn-edit" onclick="editarTarefa(${i})" title="Editar">Editar</button>
+            <button class="btn-action btn-delete" onclick="excluirTarefa(${i})" title="Remover">Remover</button>
         </td>`;
 
         tr.innerHTML = cells;
