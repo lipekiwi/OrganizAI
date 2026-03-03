@@ -2,28 +2,58 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OrganizAI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-    <h1>OrganizAI</h1>
-    <h2 id="mesAtual"></h2>
+    <header class="app-header">
+        <h1 class="app-title">OrganizAI</h1>
+        <h2 id="mesAtual" class="app-subtitle"></h2>
+    </header>
 
-    <div class="input-area">
-        <input type="text" id="novaTarefa" placeholder="Adicionar meta">
-        <button onclick="adicionarTarefa()">Adicionar</button>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-label">Progresso do Mês</span>
+            <span class="stat-value" id="porcentagem">0%</span>
+            <div class="barra-container">
+                <div id="barraProgresso"></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Metas Completas</span>
+            <span class="stat-value" id="metasCompletas">0</span>
+            <span class="stat-sub">de <span id="totalMetas">0</span> metas</span>
+        </div>
     </div>
 
-    <div class="barra-container">
-        <div id="barraProgresso"></div>
+    <div class="input-card">
+        <input type="text" id="novaTarefa" placeholder="Nova meta para o mês..." />
+        <button onclick="adicionarTarefa()">+ Adicionar</button>
     </div>
-    <p id="porcentagem"></p>
-    <p id="metasCompletas"></p>
 
-    <div id="tabelaContainer"></div>
+    <div id="tabelaContainer" class="tabela-wrapper"></div>
 </div>
+
+<!-- Modal de Edição -->
+<div id="modalOverlay" class="modal-overlay" onclick="fecharModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h3>Editar Meta</h3>
+        <input type="text" id="modalInput" placeholder="Nome da meta" />
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+            <button class="btn-confirm" onclick="confirmarEdicao()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toastContainer" class="toast-container"></div>
 
 <script src="script.js"></script>
 </body>
