@@ -64,8 +64,9 @@
 </div>
 
 <!-- Modal de Edição -->
-<div id="modalOverlay" class="modal-overlay" onclick="fecharModal()">
-    <div class="modal" onclick="event.stopPropagation()">
+<!-- Only close when clicking the dark backdrop itself, not children inside .modal -->
+<div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this)fecharModal()">
+    <div class="modal">
         <h3>Editar Meta</h3>
         <input type="text" id="modalInput" placeholder="Nome da meta" />
 

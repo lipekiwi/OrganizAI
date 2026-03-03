@@ -209,7 +209,10 @@ function confirmarEdicao() {
         return;
     }
 
-    if (criandoNova) {
+    // Capture before fecharModal() resets these flags
+    const foiCriacao = criandoNova;
+
+    if (foiCriacao) {
         dados.tarefas.push({
             nome: novoNome,
             tipoFrequencia: modalFreqTipo,
@@ -220,13 +223,23 @@ function confirmarEdicao() {
         const tarefa = dados.tarefas[editandoIndex];
         tarefa.nome = novoNome;
         tarefa.tipoFrequencia = modalFreqTipo;
+        // Reset incompatible sub-fields when type changes
         tarefa.diasSemana = modalFreqTipo === 'semanal_dias' ? [...modalFreqDias] : [];
         tarefa.vezesSemana = modalFreqTipo === 'semanal_qtd' ? modalFreqQtd : (tarefa.vezesSemana || 3);
     }
+
     salvar();
     renderizar();
     fecharModal();
-    mostrarToast("Meta editada com sucesso!", "success");
+
+    if (foiCriacao) {
+        // Clear the main text input that was used to pre-fill the modal
+        const novaTarefaInput = document.getElementById("novaTarefa");
+        if (novaTarefaInput) novaTarefaInput.value = '';
+        mostrarToast("Meta adicionada com sucesso!", "success");
+    } else {
+        mostrarToast("Meta editada com sucesso!", "success");
+    }
 }
 
 document.getElementById("modalInput").addEventListener("keydown", (e) => {
