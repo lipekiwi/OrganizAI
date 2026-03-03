@@ -1,26 +1,49 @@
 const hoje = new Date();
-const ano = hoje.getFullYear();
-const mes = hoje.getMonth();
-const diaHoje = hoje.getDate();
-const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-const numSemanas = Math.ceil(diasNoMes / 7);
+const hojeAno = hoje.getFullYear();
+const hojeMes = hoje.getMonth();
+const hojeDia = hoje.getDate();
 
-document.getElementById("mesAtual").textContent =
-    hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+let viewAno = hojeAno;
+let viewMes = hojeMes;
+let diasNoMes = new Date(viewAno, viewMes + 1, 0).getDate();
+let numSemanas = Math.ceil(diasNoMes / 7);
 
-const chaveMes = `${ano}-${mes}`;
+function recomputarDatas() {
+    diasNoMes = new Date(viewAno, viewMes + 1, 0).getDate();
+    numSemanas = Math.ceil(diasNoMes / 7);
+}
+
+function isHoje(viewDia) {
+    return viewAno === hojeAno && viewMes === hojeMes && viewDia === hojeDia;
+}
+
+let chaveMes = `${viewAno}-${viewMes}`;
 const CHAVE_TEMA = "organizai-theme";
 
-let dados = JSON.parse(localStorage.getItem(chaveMes)) || {
-    tarefas: [],
-    progresso: {}
-};
+let dados = { tarefas: [], progresso: {} };
 
 // Visão atual: 'mensal' ou 'semanal'
 let modoVisao = 'mensal';
 
 // Used for drag & drop reordering
 let indiceArrastando = null;
+
+function carregarMes(ano, mes) {
+    viewAno = ano;
+    viewMes = mes;
+    recomputarDatas();
+    chaveMes = `${viewAno}-${viewMes}`;
+    const salvo = localStorage.getItem(chaveMes);
+    dados = salvo ? JSON.parse(salvo) : { tarefas: [], progresso: {} };
+
+    const titulo = document.getElementById("mesAtual");
+    if (titulo) {
+        titulo.textContent = new Date(viewAno, viewMes, 1).toLocaleDateString('pt-BR', {
+            month: 'long',
+            year: 'numeric'
+        });
+    }
+}
 
 // ── Frequência por tarefa ────────────────────────────────────────────────────
 function getConfigTarefa(index) {
@@ -33,7 +56,7 @@ function getConfigTarefa(index) {
 }
 
 function getDiaSemana(diaDoMes) {
-    return new Date(ano, mes, diaDoMes).getDay(); // 0 = domingo
+    return new Date(viewAno, viewMes, diaDoMes).getDay(); // 0 = domingo
 }
 
 function getSemanaIndex(diaDoMes) {
@@ -69,15 +92,34 @@ function changeTheme(tema) {
     localStorage.setItem(CHAVE_TEMA, tema);
 }
 
+// Custom dropdown handlers
+function toggleThemeMenu() {
+    const shell = document.getElementById("themeDropdown");
+    if (!shell) return;
+    shell.classList.toggle("open");
+}
+
+function selectTheme(tema) {
+    changeTheme(tema);
+    const shell = document.getElementById("themeDropdown");
+    if (shell) shell.classList.remove("open");
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', (e) => {
+    const shell = document.getElementById("themeDropdown");
+    if (!shell) return;
+    if (!shell.contains(e.target)) {
+        shell.classList.remove("open");
+    }
+});
+
 // Apply saved theme on load
 let temaSalvo = localStorage.getItem(CHAVE_TEMA) || "dark";
-// Caso antigo "sunset" ou qualquer valor inválido, cai para dark
 if (!["dark", "light", "forest", "ocean"].includes(temaSalvo)) {
     temaSalvo = "dark";
 }
 aplicarTema(temaSalvo);
-const selectTema = document.getElementById("themeSelect");
-if (selectTema) selectTema.value = temaSalvo;
 
 // ── Persist ────────────────────────────────────────────────────────────────
 function salvar() {
@@ -96,6 +138,7 @@ function mostrarToast(mensagem, tipo = "default") {
 
 // ── Modal ──────────────────────────────────────────────────────────────────
 let editandoIndex = null;
+let criandoNova = false;
 let modalFreqTipo = 'diario';
 let modalFreqDias = [];
 let modalFreqQtd = 3;
@@ -129,6 +172,7 @@ function atualizarUIFrequenciaModal() {
 
 function abrirModal(index) {
     editandoIndex = index;
+    criandoNova = false;
     const overlay = document.getElementById("modalOverlay");
     const input = document.getElementById("modalInput");
     input.value = dados.tarefas[index].nome;
@@ -145,17 +189,40 @@ function abrirModal(index) {
 function fecharModal() {
     document.getElementById("modalOverlay").classList.remove("ativo");
     editandoIndex = null;
+    criandoNova = false;
 }
 
 function confirmarEdicao() {
     const input = document.getElementById("modalInput");
     const novoNome = input.value.trim();
-    if (!novoNome || editandoIndex === null) return;
-    const tarefa = dados.tarefas[editandoIndex];
-    tarefa.nome = novoNome;
-    tarefa.tipoFrequencia = modalFreqTipo;
-    tarefa.diasSemana = modalFreqTipo === 'semanal_dias' ? [...modalFreqDias] : [];
-    tarefa.vezesSemana = modalFreqTipo === 'semanal_qtd' ? modalFreqQtd : (tarefa.vezesSemana || 3);
+    if (!novoNome) {
+        mostrarToast("Nome da meta é obrigatório.", "warning");
+        return;
+    }
+
+    if (modalFreqTipo === 'semanal_dias' && modalFreqDias.length === 0) {
+        mostrarToast("Selecione pelo menos um dia da semana.", "warning");
+        return;
+    }
+    if (modalFreqTipo === 'semanal_qtd' && (!modalFreqQtd || modalFreqQtd < 1)) {
+        mostrarToast("Informe um número de vezes por semana entre 1 e 7.", "warning");
+        return;
+    }
+
+    if (criandoNova) {
+        dados.tarefas.push({
+            nome: novoNome,
+            tipoFrequencia: modalFreqTipo,
+            diasSemana: modalFreqTipo === 'semanal_dias' ? [...modalFreqDias] : [],
+            vezesSemana: modalFreqTipo === 'semanal_qtd' ? modalFreqQtd : 3
+        });
+    } else if (editandoIndex !== null) {
+        const tarefa = dados.tarefas[editandoIndex];
+        tarefa.nome = novoNome;
+        tarefa.tipoFrequencia = modalFreqTipo;
+        tarefa.diasSemana = modalFreqTipo === 'semanal_dias' ? [...modalFreqDias] : [];
+        tarefa.vezesSemana = modalFreqTipo === 'semanal_qtd' ? modalFreqQtd : (tarefa.vezesSemana || 3);
+    }
     salvar();
     renderizar();
     fecharModal();
@@ -196,17 +263,22 @@ if (freqQtdInputEl) {
 // ── Add ────────────────────────────────────────────────────────────────────
 function adicionarTarefa() {
     const input = document.getElementById("novaTarefa");
-    if (input.value.trim() === "") return;
-    dados.tarefas.push({
-        nome: input.value.trim(),
-        tipoFrequencia: 'diario',
-        diasSemana: [],
-        vezesSemana: 3
-    });
-    input.value = "";
-    salvar();
-    renderizar();
-    mostrarToast("Meta adicionada!", "success");
+    const nomeBruto = input.value.trim();
+    if (!nomeBruto) {
+        mostrarToast("Digite um nome para a meta.", "warning");
+        return;
+    }
+    criandoNova = true;
+    editandoIndex = null;
+    const overlay = document.getElementById("modalOverlay");
+    const modalInput = document.getElementById("modalInput");
+    modalInput.value = nomeBruto;
+    modalFreqTipo = 'diario';
+    modalFreqDias = [];
+    modalFreqQtd = 3;
+    atualizarUIFrequenciaModal();
+    overlay.classList.add("ativo");
+    setTimeout(() => modalInput.focus(), 100);
 }
 
 document.getElementById("novaTarefa").addEventListener("keydown", (e) => {
@@ -404,7 +476,8 @@ function renderizar() {
     let fimDia = diasNoMes;
 
     if (modoVisao === 'semanal') {
-        const semanaAtual = getSemanaIndex(diaHoje);
+        const baseDia = (viewAno === hojeAno && viewMes === hojeMes) ? hojeDia : 1;
+        const semanaAtual = getSemanaIndex(baseDia);
         inicioDia = semanaAtual * 7 + 1;
         fimDia = Math.min(inicioDia + 6, diasNoMes);
     }
@@ -414,8 +487,8 @@ function renderizar() {
     // Header
     let header = `<thead><tr><th>Meta</th>`;
     for (let d = inicioDia; d <= fimDia; d++) {
-        const isHoje = d === diaHoje;
-        header += `<th class="${isHoje ? 'hoje-col' : ''}">${isHoje ? '📍' : d}</th>`;
+        const hojeFlag = isHoje(d);
+        header += `<th class="${hojeFlag ? 'hoje-col' : ''}">${hojeFlag ? '📍' : d}</th>`;
     }
     header += `<th>Ações</th></tr></thead>`;
     table.innerHTML = header;
@@ -471,11 +544,11 @@ function renderizar() {
         for (let d = inicioDia; d <= fimDia; d++) {
             const chave = `${i}-${d}`;
             const ativo = dados.progresso[chave] ? "ativo" : "";
-            const isHoje = d === diaHoje ? "hoje-col" : "";
+            const hojeFlag = isHoje(d) ? "hoje-col" : "";
             const esperado = isDiaEsperado(i, d);
             const disabledClass = esperado ? "" : "disabled";
             const clickAttr = esperado ? `onclick="alternar(${i}, ${d})"` : "";
-            cells += `<td class="check ${ativo} ${isHoje} ${disabledClass}" ${clickAttr}></td>`;
+            cells += `<td class="check ${ativo} ${hojeFlag} ${disabledClass}" ${clickAttr}></td>`;
         }
 
         cells += `<td class="acoes">
@@ -492,4 +565,5 @@ function renderizar() {
     atualizarBarra();
 }
 
+carregarMes(hojeAno, hojeMes);
 renderizar();

@@ -19,16 +19,17 @@
         </div>
         <div class="theme-switcher">
             <span class="theme-switcher-label">Tema</span>
-            <div class="theme-select-shell">
-                <div class="theme-select-inner">
+            <div class="theme-select-shell" id="themeDropdown">
+                <button type="button" class="theme-select-toggle" onclick="toggleThemeMenu()">
                     <span class="theme-dot"></span>
-                    <select id="themeSelect" onchange="changeTheme(this.value)">
-                        <option value="dark">Dark</option>
-                        <option value="light">Light</option>
-                        <option value="forest">Forest</option>
-                        <option value="ocean">Ocean</option>
-                    </select>
+                    <span class="theme-current-label" id="themeCurrentLabel">Dark</span>
                     <span class="theme-arrow">⌄</span>
+                </button>
+                <div class="theme-menu" id="themeMenu">
+                    <button type="button" class="theme-menu-item" data-theme="dark" onclick="selectTheme('dark')">Dark</button>
+                    <button type="button" class="theme-menu-item" data-theme="light" onclick="selectTheme('light')">Light</button>
+                    <button type="button" class="theme-menu-item" data-theme="forest" onclick="selectTheme('forest')">Forest</button>
+                    <button type="button" class="theme-menu-item" data-theme="ocean" onclick="selectTheme('ocean')">Ocean</button>
                 </div>
             </div>
         </div>

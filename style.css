@@ -148,21 +148,29 @@ body.theme-ocean {
 }
 
 .theme-select-shell {
+    position: relative;
     background: rgba(15, 23, 42, 0.85);
     border-radius: 999px;
     padding: 2px;
     border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
-.theme-select-inner {
-    display: flex;
+.theme-select-toggle {
+    display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 4px 10px;
+    width: 100%;
     border-radius: 999px;
+    border: none;
     background: radial-gradient(circle at top left,
         rgba(148, 163, 184, 0.25),
         transparent 55%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
 }
 
 .theme-dot {
@@ -171,24 +179,6 @@ body.theme-ocean {
     border-radius: 999px;
     background: var(--accent);
     box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.25);
-}
-
-.theme-select-inner select {
-    background: transparent;
-    border: none;
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8rem;
-    outline: none;
-    cursor: pointer;
-    padding-right: 4px;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-}
-
-.theme-select-inner select:focus-visible {
-    outline: none;
 }
 
 .theme-arrow {
@@ -211,10 +201,62 @@ body.theme-light .theme-select-shell {
     border-color: rgba(148, 163, 184, 0.5);
 }
 
-body.theme-light .theme-select-inner {
-    background: radial-gradient(circle at top left,
-        rgba(148, 163, 184, 0.18),
-        transparent 55%);
+/* Custom theme dropdown */
+.theme-current-label {
+    white-space: nowrap;
+}
+
+.theme-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    min-width: 140px;
+    background: rgba(15, 23, 42, 0.95);
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.75);
+    padding: 4px;
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.16s var(--transition), transform 0.16s var(--transition);
+    z-index: 1500;
+}
+
+.theme-select-shell.open .theme-menu {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.theme-menu-item {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+}
+
+.theme-menu-item:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+}
+
+body.theme-light .theme-menu {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(148, 163, 184, 0.5);
+    box-shadow: 0 12px 30px rgba(148, 163, 184, 0.55);
+}
+
+body.theme-light .theme-menu-item:hover {
+    background: rgba(148, 163, 184, 0.16);
 }
 
 /* ── Stats Grid ──────────────────────────────────── */
