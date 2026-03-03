@@ -183,10 +183,38 @@ body.theme-ocean {
     cursor: pointer;
     padding-right: 4px;
     appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 
 .theme-select-inner select:focus-visible {
     outline: none;
+}
+
+.theme-arrow {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+/* Ajustes para tema claro: evitar fundo muito escuro no seletor */
+body.theme-light .theme-switcher {
+    background: linear-gradient(120deg,
+        rgba(148, 163, 184, 0.18),
+        rgba(148, 163, 184, 0.08));
+    border-color: rgba(148, 163, 184, 0.6);
+    box-shadow: 0 6px 18px rgba(148, 163, 184, 0.45);
+}
+
+body.theme-light .theme-select-shell {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(148, 163, 184, 0.5);
+}
+
+body.theme-light .theme-select-inner {
+    background: radial-gradient(circle at top left,
+        rgba(148, 163, 184, 0.18),
+        transparent 55%);
 }
 
 /* ── Stats Grid ──────────────────────────────────── */
