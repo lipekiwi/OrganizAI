@@ -472,30 +472,6 @@ body.theme-light .theme-menu-item:hover {
     box-shadow: 0 3px 8px rgba(15, 23, 42, 0.6);
 }
 
-.week-strip {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-.week-days,
-.week-dates {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-}
-
-.week-days span,
-.week-dates span {
-    text-align: center;
-}
-
-.week-dates span {
-    color: var(--text);
-}
-
 .hidden {
     display: none;
 }
@@ -517,6 +493,23 @@ th {
     padding: 12px 8px;
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
+}
+
+.week-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.week-day-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.week-date-label {
+    font-size: 0.8rem;
+    color: var(--text);
 }
 
 td {

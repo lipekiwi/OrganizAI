@@ -550,23 +550,6 @@ function renderizar() {
             const mesNome = new Date(viewAno, viewMes, 1).toLocaleDateString('pt-BR', { month: 'long' });
             weekLabelEl.textContent = `Semana ${semanaNum} de ${mesNome} ${viewAno}`;
         }
-        const datesRow = document.getElementById('weekDatesRow');
-        if (datesRow) {
-            datesRow.innerHTML = "";
-            const baseDow = getDowMonday(viewWeekBaseDay);
-            const mondayDia = viewWeekBaseDay - baseDow;
-            for (let i = 0; i < 7; i++) {
-                const dia = mondayDia + i;
-                const span = document.createElement("span");
-                if (dia >= 1 && dia <= diasNoMes) {
-                    span.textContent = dia;
-                } else {
-                    span.textContent = "-";
-                    span.classList.add("muted");
-                }
-                datesRow.appendChild(span);
-            }
-        }
     } else {
         if (weekHeader) weekHeader.classList.add('hidden');
     }
@@ -579,24 +562,34 @@ function renderizar() {
         return;
     }
 
-    let inicioDia = 1;
-    let fimDia = diasNoMes;
-
-    if (modoVisao === 'semanal') {
-        const baseDow = getDowMonday(viewWeekBaseDay);
-        inicioDia = viewWeekBaseDay - baseDow;
-        if (inicioDia < 1) inicioDia = 1;
-        fimDia = Math.min(inicioDia + 6, diasNoMes);
-    }
-
     const table = document.createElement("table");
 
     // Header
     let header = `<thead><tr><th>Meta</th>`;
-    for (let d = inicioDia; d <= fimDia; d++) {
-        const hojeFlag = isHoje(d);
-        header += `<th class="${hojeFlag ? 'hoje-col' : ''}">${hojeFlag ? '📍' : d}</th>`;
+
+    if (modoVisao === 'semanal') {
+        const baseDow = getDowMonday(viewWeekBaseDay);
+        const mondayDia = viewWeekBaseDay - baseDow;
+        const weekNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+        for (let i = 0; i < 7; i++) {
+            const dia = mondayDia + i;
+            const hojeFlag = isHoje(dia);
+            const outOfMonth = dia < 1 || dia > diasNoMes;
+            header += `<th class="${hojeFlag ? 'hoje-col' : ''}">
+                <div class="week-col">
+                    <span class="week-day-label">${weekNames[i]}</span>
+                    <span class="week-date-label">${outOfMonth ? '-' : dia}</span>
+                </div>
+            </th>`;
+        }
+    } else {
+        for (let d = 1; d <= diasNoMes; d++) {
+            const hojeFlag = isHoje(d);
+            header += `<th class="${hojeFlag ? 'hoje-col' : ''}">${hojeFlag ? '📍' : d}</th>`;
+        }
     }
+
     header += `<th>Ações</th></tr></thead>`;
     table.innerHTML = header;
 
@@ -648,14 +641,34 @@ function renderizar() {
             </div>
         </td>`;
 
-        for (let d = inicioDia; d <= fimDia; d++) {
-            const chave = `${i}-${d}`;
-            const ativo = dados.progresso[chave] ? "ativo" : "";
-            const hojeFlag = isHoje(d) ? "hoje-col" : "";
-            const esperado = isDiaEsperado(i, d);
-            const disabledClass = esperado ? "" : "disabled";
-            const clickAttr = esperado ? `onclick="alternar(${i}, ${d})"` : "";
-            cells += `<td class="check ${ativo} ${hojeFlag} ${disabledClass}" ${clickAttr}></td>`;
+        if (modoVisao === 'semanal') {
+            const baseDow = getDowMonday(viewWeekBaseDay);
+            const mondayDia = viewWeekBaseDay - baseDow;
+
+            for (let iCol = 0; iCol < 7; iCol++) {
+                const dia = mondayDia + iCol;
+                if (dia < 1 || dia > diasNoMes) {
+                    cells += `<td class="check disabled"></td>`;
+                    continue;
+                }
+                const chave = `${i}-${dia}`;
+                const ativo = dados.progresso[chave] ? "ativo" : "";
+                const hojeFlag = isHoje(dia) ? "hoje-col" : "";
+                const esperado = isDiaEsperado(i, dia);
+                const disabledClass = esperado ? "" : "disabled";
+                const clickAttr = esperado ? `onclick="alternar(${i}, ${dia})"` : "";
+                cells += `<td class="check ${ativo} ${hojeFlag} ${disabledClass}" ${clickAttr}></td>`;
+            }
+        } else {
+            for (let d = 1; d <= diasNoMes; d++) {
+                const chave = `${i}-${d}`;
+                const ativo = dados.progresso[chave] ? "ativo" : "";
+                const hojeFlag = isHoje(d) ? "hoje-col" : "";
+                const esperado = isDiaEsperado(i, d);
+                const disabledClass = esperado ? "" : "disabled";
+                const clickAttr = esperado ? `onclick="alternar(${i}, ${d})"` : "";
+                cells += `<td class="check ${ativo} ${hojeFlag} ${disabledClass}" ${clickAttr}></td>`;
+            }
         }
 
         cells += `<td class="acoes">
