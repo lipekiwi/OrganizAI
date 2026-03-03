@@ -25,8 +25,12 @@ let dados = { tarefas: [], progresso: {} };
 // Visão atual: 'mensal' ou 'semanal'
 let modoVisao = 'mensal';
 
+// Date: the Monday of the currently displayed week (weekly view)
+let currentWeekStart = null;
+
 // Used for drag & drop reordering
 let indiceArrastando = null;
+let viewWeekBaseDay = hojeDia;
 
 function carregarMes(ano, mes) {
     viewAno = ano;
@@ -35,6 +39,13 @@ function carregarMes(ano, mes) {
     chaveMes = `${viewAno}-${viewMes}`;
     const salvo = localStorage.getItem(chaveMes);
     dados = salvo ? JSON.parse(salvo) : { tarefas: [], progresso: {} };
+
+    // Ajusta base da semana para o mês carregado
+    if (viewAno === hojeAno && viewMes === hojeMes) {
+        viewWeekBaseDay = hojeDia;
+    } else {
+        viewWeekBaseDay = 1;
+    }
 
     const titulo = document.getElementById("mesAtual");
     if (titulo) {
@@ -61,6 +72,45 @@ function getDiaSemana(diaDoMes) {
 
 function getSemanaIndex(diaDoMes) {
     return Math.floor((diaDoMes - 1) / 7); // blocos de 7 dias dentro do mês
+}
+
+function getDowMonday(diaDoMes) {
+    // 0 = Monday, 6 = Sunday
+    return (new Date(viewAno, viewMes, diaDoMes).getDay() + 6) % 7;
+}
+
+function getWeekOfMonth(diaDoMes) {
+    const firstDow = getDowMonday(1);
+    const offset = diaDoMes + firstDow - 1;
+    return Math.floor(offset / 7) + 1;
+}
+
+// ── Calendar-week helpers ────────────────────────────────────────────────────
+
+/** Returns a new Date set to the Monday of the week containing `date`. */
+function getMonday(date) {
+    const d = new Date(date);
+    const day = d.getDay(); // 0 = Sun, 1 = Mon, …, 6 = Sat
+    const diff = (day === 0) ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+/**
+ * Returns 1-based week number of `monday` within its month.
+ * Week 1 = the week whose Monday is the first Monday on-or-before the 1st.
+ */
+function getWeekOfMonth(monday) {
+    const firstOfMonth = new Date(monday.getFullYear(), monday.getMonth(), 1);
+    const firstMonday  = getMonday(firstOfMonth);
+    return Math.round((monday - firstMonday) / (7 * 24 * 60 * 60 * 1000)) + 1;
+}
+
+const DIAS_SEMANA_ABREV = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+function getDiaSemanaAbrev(diaDoMes) {
+    return DIAS_SEMANA_ABREV[getDiaSemana(diaDoMes)];
 }
 
 function isDiaEsperado(indexTarefa, diaDoMes) {
@@ -472,10 +522,82 @@ function mudarVisao(novoModo) {
     renderizar();
 }
 
+function mudarMes(delta) {
+    const novaData = new Date(viewAno, viewMes + delta, 1);
+    carregarMes(novaData.getFullYear(), novaData.getMonth());
+    renderizar();
+}
+
+function mudarSemana(delta) {
+    viewWeekBaseDay += delta * 7;
+    if (viewWeekBaseDay < 1) viewWeekBaseDay = 1;
+    if (viewWeekBaseDay > diasNoMes) viewWeekBaseDay = diasNoMes;
+    renderizar();
+}
+
+// ── Month navigation ────────────────────────────────────────────────────────
+function navegarMes(delta) {
+    let m = viewMes + delta;
+    let a = viewAno;
+    if (m > 11) { m = 0; a++; }
+    if (m < 0)  { m = 11; a--; }
+    carregarMes(a, m);
+    // Anchor the weekly start to the first Monday of the new month
+    currentWeekStart = getMonday(new Date(a, m, 1));
+    if (currentWeekStart.getMonth() !== m) {
+        // 1st was a Sunday → Monday is day 2
+        currentWeekStart = new Date(a, m, 2);
+    }
+    renderizar();
+}
+
+// ── Week navigation ─────────────────────────────────────────────────────────
+function navegarSemana(delta) {
+    const d = new Date(currentWeekStart);
+    d.setDate(d.getDate() + delta * 7);
+    currentWeekStart = d;
+    const newAno = d.getFullYear();
+    const newMes = d.getMonth();
+    if (newAno !== viewAno || newMes !== viewMes) {
+        carregarMes(newAno, newMes);
+    }
+    renderizar();
+}
+
 // ── Render ─────────────────────────────────────────────────────────────────
 function renderizar() {
     const container = document.getElementById("tabelaContainer");
     container.innerHTML = "";
+
+    const weekHeader = document.getElementById('weekHeader');
+    if (modoVisao === 'semanal') {
+        if (weekHeader) weekHeader.classList.remove('hidden');
+        const weekLabelEl = document.getElementById('weekLabel');
+        if (weekLabelEl) {
+            const semanaNum = getWeekOfMonth(viewWeekBaseDay);
+            const mesNome = new Date(viewAno, viewMes, 1).toLocaleDateString('pt-BR', { month: 'long' });
+            weekLabelEl.textContent = `Semana ${semanaNum} de ${mesNome} ${viewAno}`;
+        }
+        const datesRow = document.getElementById('weekDatesRow');
+        if (datesRow) {
+            datesRow.innerHTML = "";
+            const baseDow = getDowMonday(viewWeekBaseDay);
+            const mondayDia = viewWeekBaseDay - baseDow;
+            for (let i = 0; i < 7; i++) {
+                const dia = mondayDia + i;
+                const span = document.createElement("span");
+                if (dia >= 1 && dia <= diasNoMes) {
+                    span.textContent = dia;
+                } else {
+                    span.textContent = "-";
+                    span.classList.add("muted");
+                }
+                datesRow.appendChild(span);
+            }
+        }
+    } else {
+        if (weekHeader) weekHeader.classList.add('hidden');
+    }
 
     if (dados.tarefas.length === 0) {
         container.innerHTML = `<div class="empty-state">
@@ -489,9 +611,9 @@ function renderizar() {
     let fimDia = diasNoMes;
 
     if (modoVisao === 'semanal') {
-        const baseDia = (viewAno === hojeAno && viewMes === hojeMes) ? hojeDia : 1;
-        const semanaAtual = getSemanaIndex(baseDia);
-        inicioDia = semanaAtual * 7 + 1;
+        const baseDow = getDowMonday(viewWeekBaseDay);
+        inicioDia = viewWeekBaseDay - baseDow;
+        if (inicioDia < 1) inicioDia = 1;
         fimDia = Math.min(inicioDia + 6, diasNoMes);
     }
 

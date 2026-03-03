@@ -125,6 +125,33 @@ body.theme-ocean {
     text-transform: capitalize;
 }
 
+.month-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.month-nav-btn {
+    border: none;
+    background: rgba(15, 23, 42, 0.7);
+    color: var(--text-muted);
+    border-radius: 999px;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+}
+
+.month-nav-btn:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.6);
+}
+
 .theme-switcher {
     display: flex;
     align-items: center;
@@ -407,6 +434,70 @@ body.theme-light .theme-menu-item:hover {
     background: var(--accent);
     color: #fff;
     box-shadow: 0 4px 10px var(--accent-glow);
+}
+
+.week-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.week-header-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.week-nav-btn {
+    border: none;
+    background: rgba(15, 23, 42, 0.7);
+    color: var(--text-muted);
+    border-radius: 999px;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+}
+
+.week-nav-btn:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.6);
+}
+
+.week-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.week-days,
+.week-dates {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.week-days span,
+.week-dates span {
+    text-align: center;
+}
+
+.week-dates span {
+    color: var(--text);
+}
+
+.hidden {
+    display: none;
 }
 
 table {

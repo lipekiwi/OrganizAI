@@ -15,7 +15,11 @@
     <header class="app-header">
         <div>
             <h1 class="app-title">OrganizAI</h1>
-            <h2 id="mesAtual" class="app-subtitle"></h2>
+            <div class="month-nav">
+                <button type="button" class="month-nav-btn" onclick="mudarMes(-1)">‹</button>
+                <h2 id="mesAtual" class="app-subtitle"></h2>
+                <button type="button" class="month-nav-btn" onclick="mudarMes(1)">›</button>
+            </div>
         </div>
         <div class="theme-switcher">
             <span class="theme-switcher-label">Tema</span>
@@ -58,6 +62,26 @@
     <div class="view-tabs">
         <button class="view-tab active" id="tabMensal" onclick="mudarVisao('mensal')">Visão mensal</button>
         <button class="view-tab" id="tabSemanal" onclick="mudarVisao('semanal')">Visão semanal</button>
+    </div>
+
+    <div class="week-header hidden" id="weekHeader">
+        <div class="week-header-main">
+            <button type="button" class="week-nav-btn" onclick="mudarSemana(-1)">‹</button>
+            <span id="weekLabel"></span>
+            <button type="button" class="week-nav-btn" onclick="mudarSemana(1)">›</button>
+        </div>
+        <div class="week-strip">
+            <div class="week-days">
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+                <span>Sun</span>
+            </div>
+            <div class="week-dates" id="weekDatesRow"></div>
+        </div>
     </div>
 
     <div id="tabelaContainer" class="tabela-wrapper"></div>
