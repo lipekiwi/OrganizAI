@@ -8,11 +8,39 @@ document.getElementById("mesAtual").textContent =
     hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
 const chaveMes = `${ano}-${mes}`;
+const CHAVE_TEMA = "organizai-theme";
 
 let dados = JSON.parse(localStorage.getItem(chaveMes)) || {
     tarefas: [],
     progresso: {}
 };
+
+// Used for drag & drop reordering
+let indiceArrastando = null;
+
+// ── Theme ────────────────────────────────────────────────────────────────────
+function aplicarTema(tema) {
+    const body = document.body;
+    body.classList.remove(
+        "theme-dark",
+        "theme-light",
+        "theme-forest",
+        "theme-sunset",
+        "theme-ocean"
+    );
+    body.classList.add(`theme-${tema}`);
+}
+
+function changeTheme(tema) {
+    aplicarTema(tema);
+    localStorage.setItem(CHAVE_TEMA, tema);
+}
+
+// Apply saved theme on load
+const temaSalvo = localStorage.getItem(CHAVE_TEMA) || "dark";
+aplicarTema(temaSalvo);
+const selectTema = document.getElementById("themeSelect");
+if (selectTema) selectTema.value = temaSalvo;
 
 // ── Persist ────────────────────────────────────────────────────────────────
 function salvar() {
@@ -99,20 +127,55 @@ function excluirTarefa(index) {
     mostrarToast(`"${nome}" removida.`, "danger");
 }
 
-function moverCima(index) {
-    if (index === 0) return;
-    [dados.tarefas[index], dados.tarefas[index - 1]] =
-    [dados.tarefas[index - 1], dados.tarefas[index]];
+function reordenarTarefa(fromIndex, toIndex) {
+    if (fromIndex === toIndex ||
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= dados.tarefas.length ||
+        toIndex >= dados.tarefas.length) {
+        return;
+    }
+
+    // Reordenar array de tarefas
+    const [movida] = dados.tarefas.splice(fromIndex, 1);
+    dados.tarefas.splice(toIndex, 0, movida);
+
+    // Recalcular índices no mapa de progresso
+    function mapearIndice(i) {
+        if (fromIndex < toIndex) {
+            if (i < fromIndex || i > toIndex) return i;
+            if (i === fromIndex) return toIndex;
+            return i - 1;
+        } else {
+            if (i < toIndex || i > fromIndex) return i;
+            if (i === fromIndex) return toIndex;
+            return i + 1;
+        }
+    }
+
+    const progressoAntigo = dados.progresso;
+    const novoProgresso = {};
+    Object.keys(progressoAntigo).forEach(chave => {
+        const [iStr, diaStr] = chave.split("-");
+        const i = Number(iStr);
+        const dia = Number(diaStr);
+        const novoI = mapearIndice(i);
+        novoProgresso[`${novoI}-${dia}`] = progressoAntigo[chave];
+    });
+    dados.progresso = novoProgresso;
+
     salvar();
     renderizar();
 }
 
+function moverCima(index) {
+    if (index === 0) return;
+    reordenarTarefa(index, index - 1);
+}
+
 function moverBaixo(index) {
     if (index === dados.tarefas.length - 1) return;
-    [dados.tarefas[index], dados.tarefas[index + 1]] =
-    [dados.tarefas[index + 1], dados.tarefas[index]];
-    salvar();
-    renderizar();
+    reordenarTarefa(index, index + 1);
 }
 
 function alternar(tarefaIndex, dia) {
@@ -124,15 +187,8 @@ function alternar(tarefaIndex, dia) {
 
 // ── Stats ──────────────────────────────────────────────────────────────────
 function calcularMetasCompletas() {
-    let completas = 0;
-    dados.tarefas.forEach((_, i) => {
-        let todas = true;
-        for (let d = 1; d <= diasNoMes; d++) {
-            if (!dados.progresso[`${i}-${d}`]) { todas = false; break; }
-        }
-        if (todas) completas++;
-    });
-    return completas;
+    // Conta quantos dias foram marcados como concluídos (1 dia = +1)
+    return Object.values(dados.progresso).filter(v => v).length;
 }
 
 function progressoPorMeta(index) {
@@ -151,7 +207,7 @@ function atualizarBarra() {
     document.getElementById("barraProgresso").style.width = pct + "%";
     document.getElementById("porcentagem").textContent = pct + "%";
     document.getElementById("metasCompletas").textContent = calcularMetasCompletas();
-    document.getElementById("totalMetas").textContent = dados.tarefas.length;
+    document.getElementById("totalMetas").textContent = totalPossivel;
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────
@@ -183,6 +239,38 @@ function renderizar() {
     dados.tarefas.forEach((tarefa, i) => {
         const pct = progressoPorMeta(i);
         const tr = document.createElement("tr");
+
+        // Drag & drop para reordenar como no Notion
+        tr.draggable = true;
+        tr.dataset.index = i;
+        tr.addEventListener("dragstart", (e) => {
+            indiceArrastando = i;
+            tr.classList.add("dragging");
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", String(i));
+            }
+        });
+        tr.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            tr.classList.add("drag-over");
+        });
+        tr.addEventListener("dragleave", () => {
+            tr.classList.remove("drag-over");
+        });
+        tr.addEventListener("drop", (e) => {
+            e.preventDefault();
+            tr.classList.remove("drag-over");
+            const from = indiceArrastando;
+            const to = i;
+            indiceArrastando = null;
+            if (from === null || from === undefined || from === to) return;
+            reordenarTarefa(from, to);
+        });
+        tr.addEventListener("dragend", () => {
+            indiceArrastando = null;
+            tr.classList.remove("dragging", "drag-over");
+        });
 
         let cells = `<td class="goal-name">
             <span>${tarefa.nome}</span>

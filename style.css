@@ -35,6 +35,79 @@ body {
     padding: 24px 16px 60px;
 }
 
+/* ── Themes ───────────────────────────────────────── */
+body.theme-light {
+    --bg-1: #f5f5f7;
+    --bg-2: #e4e4ed;
+    --surface: rgba(255, 255, 255, 0.9);
+    --surface-hover: rgba(255, 255, 255, 1);
+    --border: rgba(15, 23, 42, 0.08);
+    --accent: #6366f1;
+    --accent-dark: #4f46e5;
+    --accent-glow: rgba(99, 102, 241, 0.35);
+    --success: #16a34a;
+    --danger: #dc2626;
+    --warning: #d97706;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --today: rgba(99, 102, 241, 0.08);
+    --today-border: rgba(99, 102, 241, 0.45);
+}
+
+body.theme-forest {
+    --bg-1: #0b1220;
+    --bg-2: #022c22;
+    --surface: rgba(15, 23, 42, 0.9);
+    --surface-hover: rgba(15, 23, 42, 1);
+    --border: rgba(34, 197, 94, 0.25);
+    --accent: #22c55e;
+    --accent-dark: #16a34a;
+    --accent-glow: rgba(34, 197, 94, 0.35);
+    --success: #4ade80;
+    --danger: #f97373;
+    --warning: #eab308;
+    --text: #ecfdf5;
+    --text-muted: #a7f3d0;
+    --today: rgba(34, 197, 94, 0.12);
+    --today-border: rgba(34, 197, 94, 0.5);
+}
+
+body.theme-sunset {
+    --bg-1: #020617;
+    --bg-2: #7c2d12;
+    --surface: rgba(15, 23, 42, 0.9);
+    --surface-hover: rgba(15, 23, 42, 1);
+    --border: rgba(248, 113, 113, 0.3);
+    --accent: #f97316;
+    --accent-dark: #ea580c;
+    --accent-glow: rgba(249, 115, 22, 0.4);
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warning: #eab308;
+    --text: #fff7ed;
+    --text-muted: #fed7aa;
+    --today: rgba(248, 113, 113, 0.16);
+    --today-border: rgba(248, 113, 113, 0.55);
+}
+
+body.theme-ocean {
+    --bg-1: #020617;
+    --bg-2: #0f172a;
+    --surface: rgba(15, 23, 42, 0.96);
+    --surface-hover: rgba(15, 23, 42, 1);
+    --border: rgba(56, 189, 248, 0.3);
+    --accent: #38bdf8;
+    --accent-dark: #0ea5e9;
+    --accent-glow: rgba(56, 189, 248, 0.4);
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warning: #eab308;
+    --text: #e0f2fe;
+    --text-muted: #7dd3fc;
+    --today: rgba(56, 189, 248, 0.18);
+    --today-border: rgba(56, 189, 248, 0.55);
+}
+
 .container {
     width: 100%;
     max-width: 1300px;
@@ -45,7 +118,10 @@ body {
 
 /* ── Header ─────────────────────────────────────── */
 .app-header {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     padding: 20px 0 6px;
 }
 
@@ -65,6 +141,33 @@ body {
     color: var(--text-muted);
     margin-top: 6px;
     text-transform: capitalize;
+}
+
+.theme-switcher {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.theme-switcher label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.theme-switcher select {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    outline: none;
+    cursor: pointer;
 }
 
 /* ── Stats Grid ──────────────────────────────────── */
@@ -291,6 +394,15 @@ td.acoes { white-space: nowrap; padding: 6px 10px; }
 
 tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
 tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
+
+/* Drag & drop estados */
+tbody tr.dragging td {
+    opacity: 0.7;
+}
+
+tbody tr.drag-over td {
+    box-shadow: 0 -2px 0 var(--accent), 0 2px 0 var(--accent);
+}
 
 /* Empty state */
 .empty-state {

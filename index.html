@@ -13,8 +13,20 @@
 
 <div class="container">
     <header class="app-header">
-        <h1 class="app-title">OrganizAI</h1>
-        <h2 id="mesAtual" class="app-subtitle"></h2>
+        <div>
+            <h1 class="app-title">OrganizAI</h1>
+            <h2 id="mesAtual" class="app-subtitle"></h2>
+        </div>
+        <div class="theme-switcher">
+            <label for="themeSelect">Tema</label>
+            <select id="themeSelect" onchange="changeTheme(this.value)">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="forest">Forest</option>
+                <option value="sunset">Sunset</option>
+                <option value="ocean">Ocean</option>
+            </select>
+        </div>
     </header>
 
     <div class="stats-grid">
