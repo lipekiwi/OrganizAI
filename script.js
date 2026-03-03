@@ -3,6 +3,7 @@ const ano = hoje.getFullYear();
 const mes = hoje.getMonth();
 const diaHoje = hoje.getDate();
 const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+const numSemanas = Math.ceil(diasNoMes / 7);
 
 document.getElementById("mesAtual").textContent =
     hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
@@ -15,8 +16,41 @@ let dados = JSON.parse(localStorage.getItem(chaveMes)) || {
     progresso: {}
 };
 
+// Visão atual: 'mensal' ou 'semanal'
+let modoVisao = 'mensal';
+
 // Used for drag & drop reordering
 let indiceArrastando = null;
+
+// ── Frequência por tarefa ────────────────────────────────────────────────────
+function getConfigTarefa(index) {
+    const tarefa = dados.tarefas[index] || {};
+    return {
+        tipoFrequencia: tarefa.tipoFrequencia || 'diario',
+        diasSemana: Array.isArray(tarefa.diasSemana) ? tarefa.diasSemana : [],
+        vezesSemana: tarefa.vezesSemana || 3
+    };
+}
+
+function getDiaSemana(diaDoMes) {
+    return new Date(ano, mes, diaDoMes).getDay(); // 0 = domingo
+}
+
+function getSemanaIndex(diaDoMes) {
+    return Math.floor((diaDoMes - 1) / 7); // blocos de 7 dias dentro do mês
+}
+
+function isDiaEsperado(indexTarefa, diaDoMes) {
+    const cfg = getConfigTarefa(indexTarefa);
+    const dow = getDiaSemana(diaDoMes);
+
+    if (cfg.tipoFrequencia === 'diario') return true;
+    if (cfg.tipoFrequencia === 'semanal_dias') {
+        return cfg.diasSemana.includes(dow);
+    }
+    // semanal_qtd: qualquer dia pode ser usado para bater a meta semanal
+    return true;
+}
 
 // ── Theme ────────────────────────────────────────────────────────────────────
 function aplicarTema(tema) {
@@ -62,12 +96,48 @@ function mostrarToast(mensagem, tipo = "default") {
 
 // ── Modal ──────────────────────────────────────────────────────────────────
 let editandoIndex = null;
+let modalFreqTipo = 'diario';
+let modalFreqDias = [];
+let modalFreqQtd = 3;
+
+function atualizarUIFrequenciaModal() {
+    const tipoBtns = document.querySelectorAll('.freq-type-btn');
+    tipoBtns.forEach(btn => {
+        const tipo = btn.getAttribute('data-tipo');
+        btn.classList.toggle('active', tipo === modalFreqTipo);
+    });
+
+    const diasContainer = document.getElementById('freqDiasContainer');
+    const qtdContainer = document.getElementById('freqQtdContainer');
+
+    if (diasContainer && qtdContainer) {
+        diasContainer.classList.toggle('active', modalFreqTipo === 'semanal_dias');
+        qtdContainer.classList.toggle('active', modalFreqTipo === 'semanal_qtd');
+    }
+
+    const dayBtns = document.querySelectorAll('.freq-day-btn');
+    dayBtns.forEach(btn => {
+        const dia = Number(btn.getAttribute('data-dia'));
+        btn.classList.toggle('active', modalFreqDias.includes(dia));
+    });
+
+    const qtdInputEl = document.getElementById('freqQtdInput');
+    if (qtdInputEl) {
+        qtdInputEl.value = modalFreqQtd;
+    }
+}
 
 function abrirModal(index) {
     editandoIndex = index;
     const overlay = document.getElementById("modalOverlay");
     const input = document.getElementById("modalInput");
     input.value = dados.tarefas[index].nome;
+
+    const cfg = getConfigTarefa(index);
+    modalFreqTipo = cfg.tipoFrequencia;
+    modalFreqDias = [...cfg.diasSemana];
+    modalFreqQtd = cfg.vezesSemana || 3;
+    setTimeout(atualizarUIFrequenciaModal, 0);
     overlay.classList.add("ativo");
     setTimeout(() => input.focus(), 100);
 }
@@ -81,7 +151,11 @@ function confirmarEdicao() {
     const input = document.getElementById("modalInput");
     const novoNome = input.value.trim();
     if (!novoNome || editandoIndex === null) return;
-    dados.tarefas[editandoIndex].nome = novoNome;
+    const tarefa = dados.tarefas[editandoIndex];
+    tarefa.nome = novoNome;
+    tarefa.tipoFrequencia = modalFreqTipo;
+    tarefa.diasSemana = modalFreqTipo === 'semanal_dias' ? [...modalFreqDias] : [];
+    tarefa.vezesSemana = modalFreqTipo === 'semanal_qtd' ? modalFreqQtd : (tarefa.vezesSemana || 3);
     salvar();
     renderizar();
     fecharModal();
@@ -93,11 +167,42 @@ document.getElementById("modalInput").addEventListener("keydown", (e) => {
     if (e.key === "Escape") fecharModal();
 });
 
+// Eventos de frequência (delegação)
+document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (target.classList.contains('freq-type-btn')) {
+        modalFreqTipo = target.getAttribute('data-tipo');
+        atualizarUIFrequenciaModal();
+    }
+    if (target.classList.contains('freq-day-btn')) {
+        const dia = Number(target.getAttribute('data-dia'));
+        if (modalFreqDias.includes(dia)) {
+            modalFreqDias = modalFreqDias.filter(d => d !== dia);
+        } else {
+            modalFreqDias = [...modalFreqDias, dia];
+        }
+        atualizarUIFrequenciaModal();
+    }
+});
+
+const freqQtdInputEl = document.getElementById('freqQtdInput');
+if (freqQtdInputEl) {
+    freqQtdInputEl.addEventListener('input', () => {
+        const v = Number(freqQtdInputEl.value) || 1;
+        modalFreqQtd = Math.min(Math.max(v, 1), 7);
+    });
+}
+
 // ── Add ────────────────────────────────────────────────────────────────────
 function adicionarTarefa() {
     const input = document.getElementById("novaTarefa");
     if (input.value.trim() === "") return;
-    dados.tarefas.push({ nome: input.value.trim() });
+    dados.tarefas.push({
+        nome: input.value.trim(),
+        tipoFrequencia: 'diario',
+        diasSemana: [],
+        vezesSemana: 3
+    });
     input.value = "";
     salvar();
     renderizar();
@@ -182,6 +287,7 @@ function moverBaixo(index) {
 }
 
 function alternar(tarefaIndex, dia) {
+    if (!isDiaEsperado(tarefaIndex, dia)) return;
     const chave = `${tarefaIndex}-${dia}`;
     dados.progresso[chave] = !dados.progresso[chave];
     salvar();
@@ -189,28 +295,96 @@ function alternar(tarefaIndex, dia) {
 }
 
 // ── Stats ──────────────────────────────────────────────────────────────────
-function calcularMetasCompletas() {
-    // Conta quantos dias foram marcados como concluídos (1 dia = +1)
-    return Object.values(dados.progresso).filter(v => v).length;
+function calcularUnidadesEsperadasMeta(index) {
+    const cfg = getConfigTarefa(index);
+
+    if (cfg.tipoFrequencia === 'diario') {
+        return diasNoMes;
+    }
+
+    if (cfg.tipoFrequencia === 'semanal_dias') {
+        let count = 0;
+        for (let d = 1; d <= diasNoMes; d++) {
+            if (isDiaEsperado(index, d)) count++;
+        }
+        return count;
+    }
+
+    // semanal_qtd
+    return numSemanas * cfg.vezesSemana;
+}
+
+function calcularUnidadesFeitasMeta(index) {
+    const cfg = getConfigTarefa(index);
+
+    if (cfg.tipoFrequencia === 'diario' || cfg.tipoFrequencia === 'semanal_dias') {
+        let feitos = 0;
+        for (let d = 1; d <= diasNoMes; d++) {
+            if (!isDiaEsperado(index, d)) continue;
+            const chave = `${index}-${d}`;
+            if (dados.progresso[chave]) feitos++;
+        }
+        return feitos;
+    }
+
+    // semanal_qtd: limitado por vezesSemana por semana
+    const semanas = new Array(numSemanas).fill(0);
+    for (let d = 1; d <= diasNoMes; d++) {
+        const chave = `${index}-${d}`;
+        if (dados.progresso[chave]) {
+            const w = getSemanaIndex(d);
+            semanas[w]++;
+        }
+    }
+    let total = 0;
+    for (let w = 0; w < numSemanas; w++) {
+        total += Math.min(semanas[w], cfg.vezesSemana);
+    }
+    return total;
 }
 
 function progressoPorMeta(index) {
-    let feitos = 0;
-    for (let d = 1; d <= diasNoMes; d++) {
-        if (dados.progresso[`${index}-${d}`]) feitos++;
-    }
-    return Math.round((feitos / diasNoMes) * 100);
+    const esperadas = calcularUnidadesEsperadasMeta(index);
+    const feitas = calcularUnidadesFeitasMeta(index);
+    if (esperadas === 0) return 0;
+    return Math.round((feitas / esperadas) * 100);
+}
+
+function calcularTotaisGlobais() {
+    let totalEsperado = 0;
+    let totalFeito = 0;
+
+    dados.tarefas.forEach((_, i) => {
+        totalEsperado += calcularUnidadesEsperadasMeta(i);
+        totalFeito += calcularUnidadesFeitasMeta(i);
+    });
+
+    return { totalEsperado, totalFeito };
 }
 
 function atualizarBarra() {
-    const totalPossivel = dados.tarefas.length * diasNoMes;
-    const totalFeito = Object.values(dados.progresso).filter(v => v).length;
-    const pct = totalPossivel === 0 ? 0 : Math.round((totalFeito / totalPossivel) * 100);
+    const { totalEsperado, totalFeito } = calcularTotaisGlobais();
+    const pct = totalEsperado === 0 ? 0 : Math.round((totalFeito / totalEsperado) * 100);
 
     document.getElementById("barraProgresso").style.width = pct + "%";
     document.getElementById("porcentagem").textContent = pct + "%";
-    document.getElementById("metasCompletas").textContent = calcularMetasCompletas();
-    document.getElementById("totalMetas").textContent = totalPossivel;
+    document.getElementById("metasCompletas").textContent = totalFeito;
+    document.getElementById("totalMetas").textContent = totalEsperado;
+}
+
+// ── View mode ───────────────────────────────────────────────────────────────
+function mudarVisao(novoModo) {
+    if (novoModo !== 'mensal' && novoModo !== 'semanal') return;
+    modoVisao = novoModo;
+
+    const tabMensal = document.getElementById('tabMensal');
+    const tabSemanal = document.getElementById('tabSemanal');
+    if (tabMensal && tabSemanal) {
+        tabMensal.classList.toggle('active', modoVisao === 'mensal');
+        tabSemanal.classList.toggle('active', modoVisao === 'semanal');
+    }
+
+    renderizar();
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────
@@ -226,11 +400,20 @@ function renderizar() {
         return;
     }
 
+    let inicioDia = 1;
+    let fimDia = diasNoMes;
+
+    if (modoVisao === 'semanal') {
+        const semanaAtual = getSemanaIndex(diaHoje);
+        inicioDia = semanaAtual * 7 + 1;
+        fimDia = Math.min(inicioDia + 6, diasNoMes);
+    }
+
     const table = document.createElement("table");
 
     // Header
     let header = `<thead><tr><th>Meta</th>`;
-    for (let d = 1; d <= diasNoMes; d++) {
+    for (let d = inicioDia; d <= fimDia; d++) {
         const isHoje = d === diaHoje;
         header += `<th class="${isHoje ? 'hoje-col' : ''}">${isHoje ? '📍' : d}</th>`;
     }
@@ -285,11 +468,14 @@ function renderizar() {
             </div>
         </td>`;
 
-        for (let d = 1; d <= diasNoMes; d++) {
+        for (let d = inicioDia; d <= fimDia; d++) {
             const chave = `${i}-${d}`;
             const ativo = dados.progresso[chave] ? "ativo" : "";
             const isHoje = d === diaHoje ? "hoje-col" : "";
-            cells += `<td class="check ${ativo} ${isHoje}" onclick="alternar(${i}, ${d})"></td>`;
+            const esperado = isDiaEsperado(i, d);
+            const disabledClass = esperado ? "" : "disabled";
+            const clickAttr = esperado ? `onclick="alternar(${i}, ${d})"` : "";
+            cells += `<td class="check ${ativo} ${isHoje} ${disabledClass}" ${clickAttr}></td>`;
         }
 
         cells += `<td class="acoes">

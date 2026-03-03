@@ -54,6 +54,11 @@
         <button onclick="adicionarTarefa()">+ Adicionar</button>
     </div>
 
+    <div class="view-tabs">
+        <button class="view-tab active" id="tabMensal" onclick="mudarVisao('mensal')">Visão mensal</button>
+        <button class="view-tab" id="tabSemanal" onclick="mudarVisao('semanal')">Visão semanal</button>
+    </div>
+
     <div id="tabelaContainer" class="tabela-wrapper"></div>
 </div>
 
@@ -62,6 +67,32 @@
     <div class="modal" onclick="event.stopPropagation()">
         <h3>Editar Meta</h3>
         <input type="text" id="modalInput" placeholder="Nome da meta" />
+
+        <div class="freq-section">
+            <span class="freq-label">Frequência</span>
+
+            <div class="freq-types">
+                <button type="button" class="freq-type-btn active" data-tipo="diario">Diário</button>
+                <button type="button" class="freq-type-btn" data-tipo="semanal_dias">Dias da semana</button>
+                <button type="button" class="freq-type-btn" data-tipo="semanal_qtd">Vezes/semana</button>
+            </div>
+
+            <div class="freq-details freq-dias" id="freqDiasContainer">
+                <button type="button" class="freq-day-btn" data-dia="1">S</button>
+                <button type="button" class="freq-day-btn" data-dia="2">T</button>
+                <button type="button" class="freq-day-btn" data-dia="3">Q</button>
+                <button type="button" class="freq-day-btn" data-dia="4">Q</button>
+                <button type="button" class="freq-day-btn" data-dia="5">S</button>
+                <button type="button" class="freq-day-btn" data-dia="6">S</button>
+                <button type="button" class="freq-day-btn" data-dia="0">D</button>
+            </div>
+
+            <div class="freq-details freq-qtd" id="freqQtdContainer">
+                <span class="freq-qtd-label">Vezes por semana</span>
+                <input type="number" id="freqQtdInput" min="1" max="7" value="3" />
+            </div>
+        </div>
+
         <div class="modal-actions">
             <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
             <button class="btn-confirm" onclick="confirmarEdicao()">Salvar</button>

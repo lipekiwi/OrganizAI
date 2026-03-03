@@ -336,6 +336,37 @@ body.theme-light .theme-select-inner {
     backdrop-filter: blur(10px);
 }
 
+/* ── View Tabs ────────────────────────────────────── */
+.view-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    align-self: flex-start;
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    padding: 3px;
+    margin-top: 4px;
+}
+
+.view-tab {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+}
+
+.view-tab.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 10px var(--accent-glow);
+}
+
 table {
     border-collapse: collapse;
     font-size: 13px;
@@ -489,6 +520,17 @@ tbody tr.drag-over td {
     border-top: 2px solid var(--accent);
 }
 
+/* Disabled days in matrix */
+td.check.disabled {
+    cursor: not-allowed;
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--text-muted);
+}
+
+td.check.disabled:hover {
+    background: rgba(148, 163, 184, 0.1);
+}
+
 /* Empty state */
 .empty-state {
     text-align: center;
@@ -548,6 +590,106 @@ tbody tr.drag-over td {
 }
 
 .modal input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+/* ── Frequency controls (modal) ───────────────────── */
+.freq-section {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(148, 163, 184, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.freq-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.freq-types {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.freq-type-btn {
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.freq-type-btn.active {
+    border-color: var(--accent);
+    background: rgba(108, 99, 255, 0.25);
+    color: var(--text);
+    box-shadow: 0 0 0 1px var(--accent-glow);
+}
+
+.freq-details {
+    display: none;
+}
+
+.freq-details.active {
+    display: flex;
+}
+
+.freq-dias {
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.freq-day-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.9);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.freq-day-btn.active {
+    border-color: var(--accent);
+    background: rgba(108, 99, 255, 0.35);
+    color: var(--text);
+    box-shadow: 0 0 0 1px var(--accent-glow);
+}
+
+.freq-qtd {
+    align-items: center;
+    gap: 8px;
+}
+
+.freq-qtd-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+#freqQtdInput {
+    width: 60px;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+#freqQtdInput:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+}
 
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
