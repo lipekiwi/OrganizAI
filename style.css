@@ -73,21 +73,22 @@ body.theme-forest {
 }
 
 body.theme-sunset {
-    --bg-1: #020617;
-    --bg-2: #7c2d12;
-    --surface: rgba(15, 23, 42, 0.9);
+    /* Gradiente mais claro e quente, menos "preto" */
+    --bg-1: #fed7aa;
+    --bg-2: #fecaca;
+    --surface: rgba(15, 23, 42, 0.92);
     --surface-hover: rgba(15, 23, 42, 1);
-    --border: rgba(248, 113, 113, 0.3);
-    --accent: #f97316;
-    --accent-dark: #ea580c;
-    --accent-glow: rgba(249, 115, 22, 0.4);
+    --border: rgba(248, 113, 113, 0.25);
+    --accent: #fb7185;       /* rosa coral */
+    --accent-dark: #e11d48;  /* rosa forte */
+    --accent-glow: rgba(251, 113, 133, 0.45);
     --success: #22c55e;
-    --danger: #ef4444;
-    --warning: #eab308;
-    --text: #fff7ed;
-    --text-muted: #fed7aa;
-    --today: rgba(248, 113, 113, 0.16);
-    --today-border: rgba(248, 113, 113, 0.55);
+    --danger: #f97373;
+    --warning: #f97316;
+    --text: #1b1020;
+    --text-muted: #9f1239;
+    --today: rgba(251, 113, 133, 0.18);
+    --today-border: rgba(251, 113, 133, 0.6);
 }
 
 body.theme-ocean {
@@ -319,10 +320,39 @@ td {
 td.goal-name {
     text-align: left;
     padding: 10px 16px;
-    font-weight: 500;
     font-size: 0.88rem;
     white-space: nowrap;
-    max-width: 200px;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    color: var(--text-muted);
+    cursor: grab;
+    font-size: 0.9rem;
+}
+
+tr.dragging .drag-handle {
+    cursor: grabbing;
+    color: var(--accent);
+}
+
+.goal-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.goal-title {
+    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -373,35 +403,44 @@ td.acoes { white-space: nowrap; padding: 6px 10px; }
 .btn-action {
     background: transparent;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 999px;
     color: var(--text-muted);
     cursor: pointer;
     font-size: 0.78rem;
-    padding: 4px 7px;
+    padding: 4px 10px;
     margin: 2px;
     transition: all var(--transition);
     font-family: 'Inter', sans-serif;
 }
 
-.btn-action:hover {
-    color: var(--text);
-    border-color: rgba(255, 255, 255, 0.3);
-    background: var(--surface-hover);
-    transform: translateY(-1px);
+.btn-edit {
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
-.btn-action.danger:hover { color: var(--danger); border-color: var(--danger); }
+.btn-delete {
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-action:hover {
+    background: var(--surface-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
 
 tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
 tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
 
 /* Drag & drop estados */
 tbody tr.dragging td {
-    opacity: 0.7;
+    opacity: 0.9;
+    background: rgba(148, 163, 184, 0.06);
 }
 
 tbody tr.drag-over td {
-    box-shadow: 0 -2px 0 var(--accent), 0 2px 0 var(--accent);
+    background: rgba(148, 163, 184, 0.12);
+    border-top: 2px solid var(--accent);
 }
 
 /* Empty state */
